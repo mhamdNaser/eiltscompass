@@ -1,0 +1,25 @@
+{
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "dev": "vite",
+        "build": "vite build",
+        "serve": "npm run migrate && php artisan serve && npm --prefix ./admin run dev",
+        "preview": "vite preview",
+        "migrate": "php artisan migrate --seed"
+    },
+    "devDependencies": {
+        "@popperjs/core": "^2.11.6",
+        "axios": "^1.1.2",
+        "bootstrap": "^5.3.2",
+        "laravel-vite-plugin": "^0.7.5",
+        "react": "^18.2.0",
+        "react-dom": "^18.2.0",
+        "sass": "^1.56.1",
+        "vite": "^4.0.0"
+    },
+    "dependencies": {
+        "lodash": "^4.17.21",
+        "serve": "^14.2.1"
+    }
+}
