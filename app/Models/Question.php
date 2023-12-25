@@ -19,15 +19,21 @@ class Question extends Model
         return $this->hasMany(StudentAnswer::class);
     }
 
+    public function materials()
+    {
+        return $this->belongsTo(Material::class, 'material_id', 'id');
+    }
+
     public function formexam()
     {
-        return $this->hasMany(FormExam::class);
+        return $this->belongsTo(FormExam::class, 'form_exams_id', 'id');
     }
 
     protected $fillable = [
         'content',
         'type',
         'points',
+        'material_id',
         'form_exams_id',
     ];
 }

@@ -24,6 +24,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'country',
         'activation_token',
         'is_activated',
+        'phone',
         'password',
         'image',
         'role',
@@ -51,4 +52,3 @@ class User extends Authenticatable implements MustVerifyEmail
     ];
 
 }
-

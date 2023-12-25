@@ -4,10 +4,11 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\QuestionResource;
-use App\Http\Requests\QuestionRequest;
+use App\Http\Requests\Exam\QuestionRequest;
 use App\Models\Answer;
 use App\Models\Question;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 class QuestionController extends Controller
@@ -28,24 +29,31 @@ class QuestionController extends Controller
         //
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(QuestionRequest $request)
     {
-        $data = $request->validated();
+        // Begin the database transaction
+        DB::beginTransaction();
+
+        // Validate the request
+        $data = $request->all();
 
         // Generate a unique filename for the content
         $filename = $this->generateUniqueFileName();
 
-        // Save the content to a file in the 'question' folder
-        Storage::disk('local')->put('question/' . $filename . '.php', $data['content']);
+        // Ensure the 'uploads/material' directory exists in the public folder
+        if (!file_exists(public_path('uploads/question'))) {
+            mkdir(public_path('uploads/question'), 0777, true);
+        }
+
+        // Save the content to a file in the 'uploads/material' folder within the public folder
+        file_put_contents(public_path('uploads/question/' . $filename . '.php'), $data['content']);
 
         // Save the filename in the database along with other data
         $question = Question::create([
-            'content' => $filename,
-            'type' => $data['type'],
-            'points' => $data['points'],
+            'content'       => $filename,
+            'type'          => $data['type'],
+            'points'        => $data['points'],
+            'material_id'   => $data['material_id'],
             'form_exams_id' => $data['form_exams_id'],
         ]);
 
@@ -61,7 +69,13 @@ class QuestionController extends Controller
             }
         }
 
-        return response(new QuestionResource($question), 201);
+        // Commit the transaction if everything is successful
+        DB::commit();
+
+        return response()->json([
+            'success' => true,
+            'mes'     => 'Store Material Successfully',
+        ]);
     }
 
     private function generateUniqueFileName()

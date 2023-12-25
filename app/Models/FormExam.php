@@ -11,15 +11,19 @@ class FormExam extends Model
 
     protected $table = 'form_exams';
 
-    public function matrials()
-    {
-        return $this->hasMany(Matrial::class, 'form_exams_id', 'id');
-        return $this->hasMany(Question::class, 'form_exams_id', 'id');
-    }
-
     public function writer()
     {
         return $this->belongsTo(User::class, 'writer_id');
+    }
+
+    public function questions()
+    {
+        return $this->hasMany(Question::class, 'form_exams_id', 'id');
+    }
+
+    public function materials()
+    {
+        return $this->hasMany(Material::class, 'form_exams_id', 'id');
     }
 
     protected $fillable = [

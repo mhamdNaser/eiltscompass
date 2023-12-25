@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('form_name');
             $table->string('type');
             $table->string('formula');
-            $table->integer('exam_time');
+            $table->string('exam_time');
             $table->string('status')->default('unActive');
             $table->unsignedBigInteger('writer_id'); // This is the foreign key column
             $table->foreign('writer_id')->references('id')->on('users')->onDelete('cascade');

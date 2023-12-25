@@ -19,7 +19,7 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => ['https://ieltscompass.net/home', 'https://ieltscompass.net/admin', 'https://ieltscompass.net'],
+    'allowed_origins' => ['http://localhost:3000', 'http://localhost:3001','http://localhost:8000'],
 
     'allowed_origins_patterns' => [],
 

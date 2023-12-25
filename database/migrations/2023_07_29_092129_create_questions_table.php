@@ -16,8 +16,12 @@ return new class extends Migration
             $table->string('content');
             $table->string('type');
             $table->string('points')->nullable();
-            $table->unsignedBigInteger('form_exams_id'); // This is the foreign key column
-            $table->foreign('form_exams_id')->references('id')->on('form_exams')->onDelete('cascade'); // Adding foreign key constraint
+            $table->unsignedBigInteger('material_id');
+            $table->unsignedBigInteger('form_exams_id');
+
+            $table->foreign('material_id')->references('id')->on('materials')->onDelete('cascade');
+            $table->foreign('form_exams_id')->references('id')->on('form_exams')->onDelete('cascade');
+            
             $table->timestamps();
         });
     }

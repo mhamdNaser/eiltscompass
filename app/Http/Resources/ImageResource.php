@@ -19,7 +19,8 @@ class ImageResource extends JsonResource
 
         return [
             'id' => $this->id,
-            'src' =>  url('storage/app/public/images/' . $this->name),
+            'name' => $this->name,
+            'src' => asset('uploads/images/gallery/' . $this->image),
             'created_at' => $this->created_at->format('Y-m-d H:i:s'),
         ];
     }

@@ -7,6 +7,7 @@ use App\Http\Requests\ScoreRequest;
 use App\Http\Resources\ScoreResource;
 use App\Models\Score;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class ScoreController extends Controller
 {
@@ -43,10 +44,15 @@ class ScoreController extends Controller
      */
     public function store(ScoreRequest $request)
     {
-        $data = $request->validated();
-        $score = Score::create($data);
-
-        return new ScoreResource($score);
+        DB::beginTransaction();
+        $data = $request->all();
+        $store = Score::create($data);
+        DB::commit();
+        return response()->json([
+            'success' => true,
+            'mes' => 'Store User Successfully',
+        ]);
+        DB::rollBack();
     }
 
     /**
@@ -74,7 +80,10 @@ class ScoreController extends Controller
 
         $score->update($data);
 
-        return response()->json(['message' => 'done'], 200);
+        return response()->json([
+            'success' => true,
+            'mes' => 'Store User Successfully',
+        ]);
     }
 
     /**

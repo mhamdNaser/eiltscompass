@@ -19,33 +19,31 @@ class QuestionResource extends JsonResource
     public function toArray($request)
     {
 
-        // Get the file contents from storage based on the filename
-        $fileContents = Storage::disk('local')->get('question/' . $this->content . '.php');
+        // Get the file contents from the public directory based on the filename
+        $filePath = public_path('uploads/question/' . $this->content . '.php');
 
-        return [
-            'id' => $this->id,
-            'type' => $this->type,
-            'points' => $this->points,
-            'content' => $fileContents,
-            'form_exams_id' => $this->form_exams_id,
-            // 'formExams' => $this->whenLoaded('formExams', function () {
-            //     return $this->formExams->map(function ($FormExam) {
-            //         return [
-            //             'form_name'=> $FormExam->form_name,
-            //             'type'=> $FormExam->type,
-            //             'formula'=> $FormExam->formula
-            //         ];
-            //     });
-            // }),
-            'created_at' => $this->created_at->format('Y-m-d'),
-            'answers' => $this->whenLoaded('answers', function () {
-                return $this->answers->map(function ($answer) {
-                    return [
-                        'answer_content' => $answer->answer_content,
-                        'answer_value' => $answer->answer_value,
-                    ];
-                });
-            }),
-        ];
+        if (file_exists($filePath)) {
+            $fileContents = file_get_contents($filePath);
+
+            return [
+                'id' => $this->id,
+                'type' => $this->type,
+                'points' => $this->points,
+                'content' => $fileContents,
+                'form_exams_id' => $this->form_exams_id,
+                'materials' => $this->materials->title,
+                'created_at' => $this->created_at->format('Y-m-d'),
+            ];
+        } else {
+            // Handle the case when the file does not exist
+            return [
+                'id' => $this->id,
+                'type' => $this->type,
+                'points' => $this->points,
+                'content' => null,
+                'material_id' => $this->material_id,
+                'created_at' => $this->created_at->format('Y-m-d'),
+            ];
+        }
     }
 }

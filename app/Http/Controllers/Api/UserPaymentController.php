@@ -82,13 +82,13 @@ class UserPaymentController extends Controller
 
     public function showByUser($user_id)
     {
-        $userPayment = UserPayment::where('UsePayment_id', $user_id)->get();
+        $userPayment = UserPayment::where('UsePayment_id', $user_id)->first();
 
-        if ($userPayment->isEmpty()) {
+        if (!$userPayment) {
             return response()->json(['message' => 'Materials not found'], 404);
         }
 
-        return UserPaymentResource::collection($userPayment);
+        return new UserPaymentResource($userPayment);
     }
 
     /**

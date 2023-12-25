@@ -5,7 +5,8 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ActiveFormRequest;
 use App\Http\Requests\FormExamMarkRequest;
-use App\Http\Requests\FormExamRequest;
+use App\Http\Requests\Exam\FormExamRequest;
+use App\Http\Requests\SearchRequest;
 use App\Http\Resources\FormResource;
 use App\Models\FormExam;
 use App\Models\Material;
@@ -17,9 +18,30 @@ class FormExamController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(SearchRequest $request)
     {
-        return FormResource::collection(FormExam::query()->orderBy('id', 'desc')->paginate(10));
+        $searchWord = $request->input('searchWord');
+        $paginateNumber = $request->input('numberParam');
+
+        if (!$searchWord) {
+            $FormExams = FormExam::query()->paginate($paginateNumber);
+            return FormResource::collection($FormExams);
+        }
+
+        if (empty($searchWord)) {
+            $FormExams = FormExam::query()->paginate($paginateNumber);
+            return FormResource::collection($FormExams);
+        } else {
+            $FormExams = FormExam::where(function ($query) use ($searchWord) {
+                $query->where('form_name', 'LIKE', '%' . $searchWord . '%')
+                    ->orWhere('type', 'LIKE', '%' . $searchWord . '%')
+                    ->orWhere('formula', 'LIKE', '%' . $searchWord . '%')
+                    ->orWhere('status', 'LIKE', '%' . $searchWord . '%');
+            })
+                ->paginate($paginateNumber);
+
+            return FormResource::collection($FormExams);
+        }
     }
 
     public function AcademicReadingExam()
@@ -109,7 +131,11 @@ class FormExamController extends Controller
         $data = $request->validated();
         $exam = FormExam::create($data);
 
-        return response(new FormResource($exam), 201);
+        return response()->json([
+            'success' => true,
+            'mes' => 'Store FormExam Successfully',
+            'data' => $exam
+        ]);
     }
 
     /**

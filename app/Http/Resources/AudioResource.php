@@ -20,7 +20,7 @@ class AudioResource extends JsonResource
         return [
             'id' => $this->id,
             'name' => $this->name,
-            'src' =>  url('storage/app/public/audio/' . $this->name),
+            'src' => asset('uploads/audio/gallery/' . $this->audio),
             'created_at' => $this->created_at->format('Y-m-d H:i:s'),
         ];
     }

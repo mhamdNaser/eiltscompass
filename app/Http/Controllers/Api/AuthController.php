@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\LoginRequest;
-use App\Http\Requests\SignupRequest;
+use App\Http\Requests\Auth\LoginRequest;
+use App\Http\Requests\Auth\SignupRequest;
 use App\Mail\MyEmail;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -26,12 +26,6 @@ class AuthController extends Controller
             'country' => $data['country'],
             'password' => bcrypt($data['password']),
         ]);
-
-        // Mail::to($user->email)->send(new MyEmail($user));
-
-        // return response([
-        //     'message' => 'Account created. Activation email sent.',
-        // ]);
 
         $token = $user->createToken('main')->plainTextToken;
         return response(compact('user', 'token'));
@@ -58,7 +52,12 @@ class AuthController extends Controller
         }
 
         $token = $user->createToken('main')->plainTextToken;
-        return response(compact('user', 'token'));
+        return response()->json([
+            'success' => true,
+            'message' => 'Login Successfully',
+            'token' => $token,
+            'admin' => $user, // Include admin details in the response
+        ]);
     }
 
     public function logout(Request $request)

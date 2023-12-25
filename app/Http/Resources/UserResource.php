@@ -24,6 +24,7 @@ class UserResource extends JsonResource
             'country' => $this->country,
             'image' => url('storage/userimages/' . $this->image),
             'role' => $this->role,
+            'phone' => $this->phone,
             'status' => $this->status,
             'created_at' => $this->created_at->format('Y-m-d H:i:s'),
         ];

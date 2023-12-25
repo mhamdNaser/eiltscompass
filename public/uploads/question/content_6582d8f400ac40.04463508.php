@@ -1,0 +1,1 @@
+<p>​<span style="color: rgb(33, 37, 41);font-size: 14.4px">Despite the success, what major problem did The Massachusetts Bay Colony face?</span>​<br></p>

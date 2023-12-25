@@ -10,6 +10,7 @@ class Audio extends Model
     use HasFactory;
 
     protected $fillable=[
-        'name'
+        'name',
+        'audio'
     ];
 }

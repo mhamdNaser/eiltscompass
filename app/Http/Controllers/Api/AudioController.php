@@ -3,19 +3,24 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Audio\storeRequest;
 use App\Http\Resources\AudioResource;
+use App\Http\Traits\audioTrait;
 use App\Models\Audio;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
 
 class AudioController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
+    use audioTrait;
     public function index()
     {
-        return AudioResource::collection(Audio::query()->orderBy('id', 'desc')->paginate(10));
+        return AudioResource::collection(Audio::query()->orderBy('id', 'desc')->get());
+
     }
 
     public function gallery()
@@ -34,49 +39,25 @@ class AudioController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(storeRequest $request)
     {
-        $request->validate([
-            'file' => 'required|file|mimes:mpeg,wav,x-wav,ogg,mp3',
+
+        DB::beginTransaction();
+        $data = $request->all();
+        $data['audio'] = $this->saveAudio($request->audio, 'uploads/audio/gallery/'); // Update with your actual method for saving audio
+
+        $store = Audio::create($data);
+
+        DB::commit();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Audio stored successfully',
+            'data' => $data["audio"],
         ]);
-
-        if ($request->hasFile('file')) {
-            $thisaudio = $request->file('file');
-
-            // Get the original filename
-            $originalFilename = $thisaudio->getClientOriginalName();
-
-            // Store the audio file with the original name
-            $thisaudio->storeAs('public/audio', $originalFilename);
-        }
-
-        // Create a new audio record in the database
-        $audio = Audio::create([
-            'original_name' => $originalFilename,
-            'name' => $originalFilename, // You can use the same name for simplicity
-        ]);
-        return new AudioResource($audio);
     }
-    // public function store(Request $request)
-    // {
-    //     $request->validate([
-    //         'file' => 'required|file|mimes:mpeg,wav,x-wav,ogg,mp3',
-    //     ]);
 
-    //     $data = []; // Initialize the data array
 
-    //     if ($request->hasFile('file')) {
-    //         $thisaudio = $request->file('file');
-    //         $filename = uniqid() . '.' . $thisaudio->getClientOriginalExtension();
-    //         $thisaudio->storeAs('public/audio', $filename);
-    //         // Assuming 'filename' is a valid field in your MaterialImage model
-    //         $data['name'] = $filename;
-    //     }
-
-    //     $audio = Audio::create($data);
-
-    //     return response()->json("done", $audio);
-    // }
 
     /**
      * Display the specified resource.
@@ -105,14 +86,30 @@ class AudioController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Audio $audio)
+    public function destroy($audio)
     {
-        // Delete the image file from storage
-        Storage::delete('public/audio/' . $audio->name);
+        $myAudio = Audio::find($audio);
 
-        // Delete the material image record from the database
-        $audio->delete();
+        // التحقق من وجود الكائن
+        if (!$myAudio) {
+            return response()->json([
+                'success' => false,
+                'mes' => 'Image not found',
+            ]);
+        }
 
-        return response()->json("");
+        $filePath = 'uploads/audio/gallery/' . $myAudio->audio;
+        $fullPath = public_path($filePath);
+
+        if (File::exists($fullPath)) {
+            File::delete($fullPath);
+        }
+
+        $myAudio->delete();
+
+        return response()->json([
+            'success' => true,
+            'mes' => 'Delete Image Permanently',
+        ]);
     }
 }

@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\MaterialRequest;
+use App\Http\Requests\Exam\MaterialRequest;
 use App\Http\Resources\MaterialResource;
 use App\Models\Material;
-use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 class MaterialController extends Controller
@@ -28,35 +28,47 @@ class MaterialController extends Controller
     }
 
 
-    public function store(MaterialRequest $request)
+    // public function store(MaterialRequest $request)
+    // {
+    // }
+
+    public function storeMaterial(MaterialRequest $request)
     {
-        $data = $request->validated();
+        // Begin the database transaction
+        DB::beginTransaction();
 
-        // Generate a unique filename for the content
-        $filename = $this->generateUniqueFileName();
+        // Validate the request
+        $data = $request->all();
 
-        // Save the content to a file in the 'material' folder
-        Storage::disk('local')->put('material/' . $filename . '.php', $data['content']);
+        // Ensure the 'uploads/material' directory exists in the public folder
+        if (!file_exists(public_path('uploads/material'))) {
+            mkdir(public_path('uploads/material'), 0777, true);
+        }
+
+        $fileName = $data['title'];
+
+        // Save the content to a file in the 'uploads/material' folder within the public folder
+        file_put_contents(public_path('uploads/material/' . $fileName . '.php'), $data['content']);
 
         // Save the filename in the database along with other data
         $material = Material::create([
-            'content' => $filename,
+            'title'         => $data['title'],
             'form_exams_id' => $data['form_exams_id'],
         ]);
 
-        return response(new MaterialResource($material), 201);
-    }
+        // Commit the transaction if everything is successful
+        DB::commit();
 
-    private function generateUniqueFileName()
-    {
-        return uniqid('content_', true); // Generates a unique filename with a prefix 'content_'
+        return response()->json([
+            'success' => true,
+            'mes'     => 'Store Material Successfully',
+        ]);
     }
-
 
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function showbyid($id)
     {
         $formExams = Material::findOrFail($id);
         return new MaterialResource($formExams);
@@ -69,18 +81,12 @@ class MaterialController extends Controller
     }
 
     /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
-    }
-
-    /**
      * Update the specified resource in storage.
      */
     public function update(MaterialRequest $request, string $id)
     {
+        // Begin the database transaction
+        DB::beginTransaction();
         $data = $request->validated();
 
         // Find the material record by ID
@@ -90,22 +96,45 @@ class MaterialController extends Controller
         $modifiedContent = $data['content'];
 
         // Save the modified content to the same file, overwriting the existing content
-        Storage::disk('local')->put('material/' . $material->content . '.php', $modifiedContent);
+        file_put_contents(public_path('uploads/material/' . $material->title . '.php'), $modifiedContent);
 
-        // Update other data in the database if needed
+        // Update other data in the database
         $material->update([
-            'id' => $data['id'],
             'form_exams_id' => $data['form_exams_id'],
         ]);
 
-        return response(json_decode("true"));
+        // Commit the transaction if everything is successful
+        DB::commit();
+
+        return response()->json([
+            'success' => true,
+            'mes' => 'Update Material Successfully',
+        ]);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
+
+    public function deleteMaterial($id)
     {
-        //
+        // Begin the database transaction
+        DB::beginTransaction();
+        // Find the material record by ID
+        $material = Material::findOrFail($id);
+
+        // Delete the associated file
+        $filePath = public_path('uploads/material/' . $material->title . '.php');
+        if (file_exists($filePath)) {
+            unlink($filePath);
+        }
+
+        // Delete the material record from the database
+        $material->delete();
+
+        // Commit the transaction if everything is successful
+        DB::commit();
+
+        return response()->json([
+            'success' => true,
+            'mes' => 'Delete Material Successfully',
+        ]);
     }
 }

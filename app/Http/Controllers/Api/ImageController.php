@@ -3,24 +3,23 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Image\storeRequest;
 use App\Http\Resources\ImageResource;
+use App\Http\Traits\imageTrait;
 use App\Models\Image;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
 
 class ImageController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
+    use imageTrait;
     public function index()
     {
-        return ImageResource::collection(Image::query()->orderBy('id', 'desc')->paginate(10));
-    }
-
-    public function gallery()
-    {
-        return  ImageResource::collection(Image::query()->orderBy('id', 'desc')->paginate(10));
+        return ImageResource::collection(Image::query()->orderBy('id', 'desc')->get());
     }
 
     /**
@@ -34,25 +33,18 @@ class ImageController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(storeRequest $request)
     {
-        $request->validate([
-            'file' => 'required|image|mimes:jpeg,png,jpg,gif',
+        DB::beginTransaction();
+        $data = $request->all();
+        $data['image'] = $this->saveImage($request->image, 'uploads/images/gallery');
+        $store = Image::create($data);
+        DB::commit();
+        return response()->json([
+            'success' => true,
+            'mes' => 'Store User Successfully',
         ]);
-
-        $data = []; // Initialize the data array
-
-        if ($request->hasFile('file')) {
-            $image = $request->file('file');
-            $filename = uniqid() . '.' . $image->getClientOriginalExtension();
-            $image->storeAs('public/images', $filename);
-            // Assuming 'filename' is a valid field in your MaterialImage model
-            $data['name'] = $filename;
-        }
-
-        $material = Image::create($data);
-
-        return new ImageResource($material);
+        DB::rollBack();
     }
 
     /**
@@ -82,14 +74,34 @@ class ImageController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Image $image)
+    public function destroy($image)
     {
-        // Delete the image file from storage
-        Storage::delete('public/images/' . $image->name);
+        $myImage = Image::find($image);
 
-        // Delete the material image record from the database
-        $image->delete();
+        // التحقق من وجود الكائن
+        if (!$myImage) {
+            return response()->json([
+                'success' => false,
+                'mes' => 'Image not found',
+            ]);
+        }
 
-        return response()->json("");
+        $filePath = 'uploads/images/gallery/' . $myImage->image;
+        $fullPath = public_path($filePath);
+
+        // التحقق من وجود الملف قبل حذفه
+        if (File::exists($fullPath)) {
+            File::delete($fullPath);
+        }
+
+        // حذف السجل من قاعدة البيانات
+        $myImage->delete();
+
+        return response()->json([
+            'success' => true,
+            'mes' => 'Delete Image Permanently',
+        ]);
+
     }
+
 }

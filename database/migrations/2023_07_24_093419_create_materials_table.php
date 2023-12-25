@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('materials', function (Blueprint $table) {
             $table->id();
-            $table->string('content');
+            $table->string('title');
             $table->unsignedBigInteger('form_exams_id'); // This is the foreign key column
             $table->foreign('form_exams_id')->references('id')->on('form_exams')->onDelete('cascade'); // Adding foreign key constraint
             $table->timestamps();
